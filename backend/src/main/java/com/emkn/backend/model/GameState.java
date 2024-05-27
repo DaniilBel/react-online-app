@@ -22,6 +22,20 @@ public class GameState {
         return player;
     }
 
+    public void resetPosition() {
+        player.setX(5);
+        player.setY(8);
+        player.setHealth(3);
+    }
+
+    public boolean checkFinish() {
+        int newX = player.getX();
+        int newY = player.getY();
+        char newPosition = field[newY][newX];
+
+        return newPosition == 'E';
+    }
+
     public void movePlayer(String direction) {
         int newX = player.getX();
         int newY = player.getY();

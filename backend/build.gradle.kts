@@ -40,11 +40,12 @@ dependencies {
 
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // SQLite
 //    implementation("org.xerial:sqlite-jdbc:3.45.3.0")
-    implementation("org.postgresql:postgresql:42.6.0")
+    implementation("org.postgresql:postgresql")
 }
 
 tasks.withType<Test> {

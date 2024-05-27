@@ -9,11 +9,20 @@ const Chat = ({ loggedInUser }) => {
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
+        // const socket = new SockJS('http://bbaev4o235muach4viii.containers.yandexcloud.net/ws');
         const stompClient = new Client({
             webSocketFactory: () => socket,
-            reconnectDelay: 5000,
+            reconnectDelay: 15000,
             heartbeatIncoming: 4000,
             heartbeatOutgoing: 4000,
+            onStompError: function(error) {
+                // display the error's message header:
+                console.log(error.headers.message);
+            },
+            onWebSocketError: function(error) {
+                // display the error's message header:
+                console.log(error.headers.message);
+            },
             onConnect: () => {
                 console.log('Connected to WebSocket server');
                 stompClient.subscribe('/topic/messages', (message) => {

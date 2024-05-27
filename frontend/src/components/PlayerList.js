@@ -6,6 +6,7 @@ import SockJS from 'sockjs-client';
 const PlayerList = ({ setLoggedInUser }) => {
     const [players, setPlayers] = useState([]);
     const [nickname, setNickname] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loggedInUser, setLocalLoggedInUser] = useState(null);
     const [error, setError] = useState('');
@@ -13,6 +14,8 @@ const PlayerList = ({ setLoggedInUser }) => {
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
+
+        // const socket = new SockJS('http://bba8mn43mvel1jncd95g.containers.yandexcloud.net/ws');
         const stompClient = new Client({
             webSocketFactory: () => socket,
             reconnectDelay: 5000,
@@ -47,8 +50,9 @@ const PlayerList = ({ setLoggedInUser }) => {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('/api/users/authenticate', {
+            const response = await axios.post('http://localhost:8080/api/users/authenticate', {
                 nickname,
+                email,
                 password,
             }, { withCredentials: true });
             if (response.data) {
@@ -69,7 +73,7 @@ const PlayerList = ({ setLoggedInUser }) => {
 
     const handleRegister = async () => {
         try {
-            const response = await axios.post('/api/users', {
+            const response = await axios.post('http://localhost:8080/api/users', {
                 nickname,
                 password,
             }, { withCredentials: true });

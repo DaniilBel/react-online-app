@@ -16,7 +16,11 @@ public class SQLUserRepository implements UserRepository {
 
     public SQLUserRepository() {
 //        dataStore = SQLDataStore.createDataStore("jdbc:sqlite:database.sqlite");
-        dataStore = SQLDataStore.createDataStore("jdbc:postgresql://localhost:5432/RPG2d");
+//        dataStore = SQLDataStore.createDataStore("jdbc:postgresql://localhost:5432/RPG2d");
+        dataStore = SQLDataStore.createDataStore("""
+                jdbc:postgresql://rc1d-5r0y2xa7guqfhsdw.mdb.yandexcloud.net:6432,
+                rc1d-5r0y2xa7guqfhsdw.mdb.yandexcloud.net:6432/db1?
+                targetServerType=master&ssl=true&sslmode=verify-full&target_session_attrs=read-write""");
     }
 
     public SQLUserRepository(SQLDataStore dataStore) {

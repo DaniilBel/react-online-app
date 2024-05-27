@@ -28,7 +28,7 @@ public class WebSocketController {
     private List<UserDTO> onlineUsers = new CopyOnWriteArrayList<>();
     private Map<String, String> votes = new HashMap<>();
     private ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private long remainingTime = 60; // in seconds
+    private long remainingTime = 5; // in seconds
 
     private GameState gameState;
 
@@ -38,21 +38,22 @@ public class WebSocketController {
 
         // Инициализация игрового состояния
         String[] template = {
-                "**********",
-                "*________*",
-                "*__L_W___*",
-                "*__****__*",
-                "*__*__*__*",
-                "*__****__*",
-                "*________*",
-                "*________*",
-                "*____P___*",
-                "**********"
+                "**************",
+                "*________*W__*",
+                "*__L_W___*W__*",
+                "*__*E**__*_*_E",
+                "*__*__*__*_*L*",
+                "*__****__*_*L*",
+                "*____________*",
+                "*________*___*",
+                "*____P___*****",
+                "**************"
         };
         Player player = new Player(5, 8, 3); // начальная позиция игрока и здоровье
         this.gameState = new GameState(template, player);
 
-        scheduler.scheduleAtFixedRate(this::processVotes, 1, 1, TimeUnit.MINUTES);
+
+        scheduler.scheduleAtFixedRate(this::processVotes, 1, 5, TimeUnit.SECONDS);
         scheduler.scheduleAtFixedRate(this::updateRemainingTime, 1, 1, TimeUnit.SECONDS);
     }
 
@@ -112,20 +113,26 @@ public class WebSocketController {
                 .orElse("none");
 
         ChatMessage systemMessage = new ChatMessage();
-        systemMessage.setSender("system");
-        systemMessage.setContent("Выбрана кнопка: " + (chosenDirection.equals("none") ? "никакая" : chosenDirection));
+        // systemMessage.setSender("system");
+        // systemMessage.setContent("Выбрана кнопка: " + (chosenDirection.equals("none") ? "никакая" : chosenDirection));
         logger.info(systemMessage.getContent());
-        sendSystemMessage(systemMessage);
+        //sendSystemMessage(systemMessage);
 
         if (!chosenDirection.equals("none")) {
             gameState.movePlayer(chosenDirection);
             gameState.logField(); // логирование текущего состояния поля
+            if(gameState.checkFinish()) {
+                systemMessage.setSender("system");
+                systemMessage.setContent("Вы дошли до финиша");
+                sendSystemMessage(systemMessage);
+                gameState.resetPosition();
+            }
             messagingTemplate.convertAndSend("/topic/gameState", gameState);
         }
 
         votes.clear();
         sendVotesUpdate(); // Send an update to reset vote counts on the client
-        remainingTime = 60;
+        remainingTime = 5;
     }
 
     private void sendSystemMessage(ChatMessage message) {

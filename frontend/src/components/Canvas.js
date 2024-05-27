@@ -1,15 +1,31 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import grass from '../assets/grass.png';
+import bush from '../assets/bush.png';
+import player_ from '../assets/player.png';
+import water from '../assets/water.png';
+import lava from '../assets/lava.jpg';
+import exit from '../assets/exit.png';
 
 const TILE_SIZE = 32; // размер клетки в пикселях
 const COLORS = {
-    '*': 'gray',    // стены
-    '_': 'white',   // пол
-    'L': 'orange',  // лава
-    'W': 'blue',    // вода
-    'P': 'green'    // игрок
+    '*': bush,    // стены
+    '_': grass,   // пол
+    'L': lava,  // лава
+    'W': water,    // вода
+    'P': grass,    // игрок
+    'E': exit
 };
+
+function loadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+    });
+}
 
 const Canvas = () => {
     const [gameState, setGameState] = useState(null);
@@ -17,6 +33,7 @@ const Canvas = () => {
 
     useEffect(() => {
         const socket = new SockJS('http://localhost:8080/ws');
+        // const socket = new SockJS('https://bba8mn43mvel1jncd95g.containers.yandexcloud.net/ws');
         const stompClient = new Client({
             webSocketFactory: () => socket,
             reconnectDelay: 5000,
@@ -75,6 +92,7 @@ const Canvas = () => {
 
         // Проверка, что gameState.field является массивом
         if (Array.isArray(gameState.field)) {
+            const imagePromises = [];
             // Отрисовка игрового поля
             gameState.field.forEach((row, y) => {
                 if (typeof row === 'string') {
@@ -82,9 +100,19 @@ const Canvas = () => {
                 }
 
                 if (Array.isArray(row)) {
+                    
+
                     row.forEach((tile, x) => {
-                        ctx.fillStyle = COLORS[tile] || 'gray';
-                        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        // ctx.fillStyle = COLORS[tile] || 'gray';
+                        // ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+                        if (COLORS[tile]) {
+                            imagePromises.push(loadImage(COLORS[tile]).then(img => ({
+                                img,
+                                x: x * TILE_SIZE,
+                                y: y * TILE_SIZE
+                            })));
+                        }
                     });
                 } else {
                     console.error(`Invalid row format at index ${y}:`, row);
@@ -92,14 +120,31 @@ const Canvas = () => {
             });
 
             // Отрисовка игрока
-            const player = gameState.player;
-            ctx.fillStyle = COLORS['P'];
-            ctx.fillRect(player.x * TILE_SIZE, player.y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            const player_img = gameState.player;
+            const playerPromise = loadImage(player_).then(img => ({
+                img,
+                x: player_img.x * TILE_SIZE,
+                y: player_img.y * TILE_SIZE
+            }));
+
+            // Ожидание загрузки всех изображений и их отрисовка
+            Promise.all([...imagePromises, playerPromise]).then(images => {
+                images.forEach(({ img, x, y }) => {
+                    ctx.drawImage(img, x, y);
+                });
+
+                // Отрисовка здоровья игрока
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.fillText(`Health: ${player_img.health}`, 10, canvas.height - 10);
+            }).catch(err => {
+                console.error('Error loading images:', err);
+            });
 
             // Отрисовка здоровья игрока
-            ctx.fillStyle = 'black';
-            ctx.font = '16px Arial';
-            ctx.fillText(`Health: ${player.health}`, 10, canvas.height - 10);
+            // ctx.fillStyle = 'white';
+            // ctx.font = '16px Arial';
+            // ctx.fillText(`Health: ${player.health}`, 10, canvas.height - 10);
         } else {
             console.error('Invalid game state field format:', gameState.field);
         }
@@ -107,7 +152,7 @@ const Canvas = () => {
 
     return (
         <div>
-            <canvas ref={canvasRef} width={320} height={320} />
+            <canvas ref={canvasRef} width={450} height={360} />
         </div>
     );
 };

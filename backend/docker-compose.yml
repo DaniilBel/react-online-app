@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  app:
+    image: test_backend
+    container_name: ps-backend
+    ports:
+      - "8080:8080"
+
+
+
+#  postgres:
+#    restart: always
+#    hostname: postgres
+#    image: postgres:latest
+#    volumes:
+#      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+#    environment:
+#        POSTGRES_DB: "RPG2d"
+#        POSTGRES_USER: "postgres"
+#        POSTGRES_PASSWORD: 1234
+#    ports:
+#      - 5432:5432
